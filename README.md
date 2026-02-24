@@ -214,44 +214,26 @@ Git LFS subirá los archivos grandes al almacenamiento de Git LFS mientras que G
 [seaborn-data](https://github.com/mwaskom/seaborn-data)
 [load_dataset](https://seaborn.pydata.org/generated/seaborn.load_dataset.html)
 
-[//]: # (SIMULAVA-UNAL/)
-
-[//]: # (├── .github/                # Configuración de GitHub &#40;acciones, plantillas&#41;)
-
-[//]: # (├── data/)
-
-[//]: # (│   ├── raw/                # Datos originales sin procesar &#40;CSV, XLSX&#41;)
-
-[//]: # (│   └── processed/          # Datos limpios listos para la simulación)
-
-[//]: # (├── docs/)
-
-[//]: # (│   ├── teoria/             # Conceptos de probabilidad, riesgo y aleatoriedad )
-
-[//]: # (│   └── reportes/           # Informes de validación y resultados finales)
-
-[//]: # (├── models/                 # Etapas del modelamiento )
-
-[//]: # (│   ├── 01_definicion/      # Documentación del problema y recolección)
-
-[//]: # (│   ├── 02_formulacion/     # Modelos matemáticos y diagramas de flujo)
-
-[//]: # (│   ├── 03_solucion/        # Lógica de simulación &#40;Python, R, FlexSim&#41;)
-
-[//]: # (│   └── 04_validacion/      # Pruebas de bondad de ajuste y verificación)
-
-[//]: # (├── notebooks/              # Análisis exploratorio y pruebas con distfit/fitter)
-
-[//]: # (├── src/                    # Código fuente reutilizable)
-
-[//]: # (│   ├── core/               # Motores de simulación &#40;Monte Carlo, Eventos Discretos&#41;)
-
-[//]: # (│   └── utils/              # Funciones auxiliares &#40;visualización, outliers&#41;)
-
-[//]: # (├── requirements.txt        # Dependencias del proyecto &#40;Python 3.12&#41;)
-
-[//]: # (├── .gitignore              # Archivos a ignorar por Git)
-
-[//]: # (├── LICENSE                 # Licencia del software)
-
-[//]: # (└── README.md               # Descripción académica del repositorio)
+```txt
+SIMULAVA-UNAL/
+├── .github/                # Configuración de GitHub (acciones, plantillas)
+├── data/
+│   ├── raw/                # Datos originales sin procesar (CSV, XLSX)
+│   └── processed/          # Datos limpios listos para la simulación
+├── docs/
+│   ├── teoria/             # Conceptos de probabilidad, riesgo y aleatoriedad 
+│   └── reportes/           # Informes de validación y resultados finales
+├── models/                 # Etapas del modelamiento 
+│   ├── 01_definicion/      # Documentación del problema y recolección
+│   ├── 02_formulacion/     # Modelos matemáticos y diagramas de flujo
+│   ├── 03_solucion/        # Lógica de simulación (Python, R, FlexSim)
+│   └── 04_validacion/      # Pruebas de bondad de ajuste y verificación
+├── notebooks/              # Análisis exploratorio y pruebas con distfit/fitter
+├── src/                    # Código fuente reutilizable
+│   ├── core/               # Motores de simulación (Monte Carlo, Eventos Discretos)
+│   └── utils/              # Funciones auxiliares (visualización, outliers)
+├── requirements.txt        # Dependencias del proyecto (Python 3.12)
+├── .gitignore              # Archivos a ignorar por Git
+├── LICENSE                 # Licencia del software
+└── README.md               # Descripción académica del repositorio
+```
