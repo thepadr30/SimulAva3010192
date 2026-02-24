@@ -1,15 +1,24 @@
 # -*- coding: utf-8 -*-
 """ Gráficas usando matplotlib
 funciones para gráficar diferentes escenarios usando la librería matplotlib
+
 Proyecto: personal
+
 Tema: gráficas matplotlib
+
 Programa: fun_graph_matplotlib
+
 Soporte: kfhidalgoh@unal.edu.co
+
 version: 1.0.0
+
 lenguaje: Python 3.8.13
+
 CD: 20230131
+
 LUD: 20230131
 """
+
 __author__ = "Kevin Hidalgo"
 __contact__ = "kfhidalgoh@unal.edu.co"
 __copyright__ = "Copyright 2023, Kevin Hidalgo"
@@ -43,15 +52,16 @@ plt.rc('font', size=14)
 # =========================================================================== #
 
 
-class FnGraphMat():
+class FnGraphMat:
     """FnGraphMat Gráficas Matplotlib y Seaborn
-        Available templates:
-            ['Solarize_Light2', '_classic_test_patch', 'bmh', 'classic', 'dark_background', 'fast',
-                'fivethirtyeight', 'ggplot', 'grayscale', 'seaborn', 'seaborn-bright',
-                'seaborn-colorblind', 'seaborn-dark', 'seaborn-dark-palette', 'seaborn-darkgrid',
-                'seaborn-deep', 'seaborn-muted', 'seaborn-notebook', 'seaborn-paper',
-                'seaborn-pastel', 'seaborn-poster', 'seaborn-talk', 'seaborn-ticks',
-                'seaborn-white', 'seaborn-whitegrid', 'tableau-colorblind10', 'dark_style']
+
+    Available templates:
+        ['Solarize_Light2', '_classic_test_patch', 'bmh', 'classic', 'dark_background', 'fast',
+        'fivethirtyeight', 'ggplot', 'grayscale', 'seaborn', 'seaborn-bright',
+        'seaborn-colorblind', 'seaborn-dark', 'seaborn-dark-palette', 'seaborn-darkgrid',
+        'seaborn-deep', 'seaborn-muted', 'seaborn-notebook', 'seaborn-paper',
+        'seaborn-pastel', 'seaborn-poster', 'seaborn-talk', 'seaborn-ticks',
+        'seaborn-white', 'seaborn-whitegrid', 'tableau-colorblind10', 'dark_style']
     """
 
     def __init__(self, var_theme: str = None) -> None:
@@ -178,7 +188,8 @@ class FnGraphMat():
         """graph_armor_zoom gráfico de líneas con zoom
 
         Args:
-            dict_prmt (dict):
+            dict_prmt (dict): Diccionario de configuración. Ejemplo::
+
                 dict_prmt_1 = {
                         "data_frame":df_automobile,
                         "var_vble":"price",
