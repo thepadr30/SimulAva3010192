@@ -19,6 +19,7 @@ CD: 20230131
 
 LUD: 20230131
 """
+
 __author__ = "Kevin Hidalgo"
 __contact__ = "kfhidalgoh@unal.edu.co"
 __copyright__ = "Copyright 2023, Kevin Hidalgo"
@@ -55,9 +56,10 @@ from scipy import stats
 
 class FnGraphPlotly():
     """FnGraphPlotly gráficas plotly
-        Available templates:
-            ['ggplot2', 'seaborn', 'simple_white', 'plotly','plotly_white', 'plotly_dark',
-                'presentation', 'xgridoff','ygridoff', 'gridon', 'none']
+
+    Available templates:
+        ['ggplot2', 'seaborn', 'simple_white', 'plotly','plotly_white', 'plotly_dark',
+            'presentation', 'xgridoff','ygridoff', 'gridon', 'none']
     """
 
     def __init__(self, var_theme: str = None) -> None:
