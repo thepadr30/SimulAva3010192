@@ -1,0 +1,40 @@
+# --- Python & Jupyter ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv
+venv/
+ENV/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# --- Datos y Archivos Temporales de Oficina ---
+# Se asume el uso de Excel según la metodología de clase
+~$*.xlsx
+~$*.xls
+*.csv
+# Opcional: ignorar datos crudos si son muy pesados, pero permitir los procesados
+# data/raw/*
+# !data/raw/.gitkeep
+
+# --- Entorno de Simulación ---
+# Archivos temporales de herramientas como FlexSim o Simul8 mencionadas en el curso
+*.bak
+*.log
+*.tmp
+
+# --- Visualización y Reportes ---
+# Ignorar figuras generadas automáticamente (pueden regenerarse con el código)
+docs/reportes/figuras/*.png
+docs/reportes/figuras/*.pdf
+
+# --- Configuración de IDEs ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Distribución ---
+dist/
+build/
+*.egg-info/
