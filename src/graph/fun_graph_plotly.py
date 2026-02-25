@@ -539,13 +539,13 @@ class FnGraphPlotly():
         fig.add_trace(go.Scatter(x=data_frame[var_index],
                       y=data_frame[var_vble], name=var_vble))
         fig.add_trace(go.Scatter(x=data_frame[var_index], y=np.repeat(var_li, len(
-            data_frame)), name=f'Límite inferior', line=dict(color='firebrick', dash='dash')))
+            data_frame)), name='Límite inferior', line=dict(color='firebrick', dash='dash')))
         fig.add_trace(go.Scatter(x=data_frame[var_index], y=np.repeat(var_ls, len(
-            data_frame)), name=f'Límite superior', line=dict(color='firebrick', dash='dash')))
+            data_frame)), name='Límite superior', line=dict(color='firebrick', dash='dash')))
         fig.add_trace(go.Scatter(x=data_frame[var_index], y=np.repeat(var_q1, len(
-            data_frame)), name=f'Q1', line=dict(color='green', dash='dash')))
+            data_frame)), name='Q1', line=dict(color='green', dash='dash')))
         fig.add_trace(go.Scatter(x=data_frame[var_index], y=np.repeat(var_q3, len(
-            data_frame)), name=f'Q3', line=dict(color='green', dash='dash')))
+            data_frame)), name='Q3', line=dict(color='green', dash='dash')))
         fig.update_layout(
             title=f"{var_vble}",
             xaxis_title=var_index, yaxis_title=var_vble, template=self.var_theme)

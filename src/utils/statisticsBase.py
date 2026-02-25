@@ -2,6 +2,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Simulación Monte Carlo
+
 Este archivo será el entorno de desarrollo donde se implementará la prueba técnica de analítica
 empresarial, siguiendo las instrucciones y objetivos definidos en el documento
 Prueba_técnica_analítica_Analítica_Empresarial.docx.
@@ -71,7 +72,8 @@ def fn_statistics_base(
     Raises:
         ValueError: si `var_vble` no está en `data_frame` o no hay observaciones válidas.
 
-    Examples:
+    Examples::
+
         np.random.seed(0)
         df = pd.DataFrame({
             "A": np.concatenate([np.random.normal(50, 5, size=30), [np.nan, np.nan]]),
@@ -236,6 +238,7 @@ def numeric_descriptive_stats(data_frame: pd.DataFrame) -> pd.DataFrame:
     desc['median'] = data_frame[num_cols].median()
     desc['missing'] = data_frame[num_cols].isna().sum()
     return desc
+
 
 def analisis_descriptivo(data_frame: pd.DataFrame, **kwargs) -> dict:
     """

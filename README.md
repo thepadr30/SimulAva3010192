@@ -99,6 +99,9 @@ otra opción es:
 
 ```PowerShell
 jupyter nbconvert notebook.ipynb --to slides --post serve --SlidesExporter.reveal_theme=serif --SlidesExporter.reveal_scroll=True --SlidesExporter.reveal_transition=none
+jupyter nbconvert D:\SimulAva\notebooks\SimulacionMC.ipynb --to slides --post serve --SlideExporter.reveal_theme=serif --SlidesExporter.reveal_scroll=True --SlidesExporter.reveal_transition=none
+jupyter nbconvert --to html D:\SimulAva\notebooks\SimulacionMC.ipynb
+jupyter nbconvert --to pdf D:\SimulAva\notebooks\SimulacionMC.ipynb
 ```
 
 Más info [nbconvert documentation](https://nbconvert.readthedocs.io/en/latest/usage.html)
