@@ -17,7 +17,7 @@ Soporte: kfhidalgoh@unal.edu.co
 version: 1.0.0
 
 lenguaje: Python 3.12
-
+pip
 CD: 20260223
 
 LUD: 20260223
@@ -173,6 +173,10 @@ grmt.graph_armor_iqr(df_monteCarlo, var_index='datos', var_vble='horas')
 tabla = frequency_table(df_monteCarlo, "horas")
 print(tabla)
 
+# from tabulate import tabulate  # NOSONAR
+# print("📜 LaTeX (tabulate)")
+# print(tabulate(tabla, headers="keys", tablefmt="pipe"))
+# print(tabulate(tabla, headers="keys", tablefmt="grid"))
 #%%
 #######################
 # Ajuste distribución #
