@@ -1,0 +1,661 @@
+---
+title: "3010192 Simulación avanzada - Simulación MonteCarlo"
+author: "Kevin Ferney Hidalgo Higuita (kfhidalgoh@unal.edu.co)"
+output:
+  html_document:
+    df_print: paged
+    theme: cosmo
+    highlight: tango
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 8,
+  fig.height = 5
+)
+```
+
+
+# Configuraciones iniciales
+
+## Rutas
+
+```{r rutas, echo=FALSE, results='hide'}
+options(scipen = 100, digits = 4, encoding = "UTF-8")
+usuario <- "Kevin"
+
+if (usuario == "Kevin") {
+  source(paste0("D:/SimulAva/Rproject", "/01Direcciones.R"), echo = TRUE)
+} else {
+  print("Usuario no identificado")
+}
+```
+
+## Librerías
+
+```{r librerias, echo=FALSE}
+source(paste0(dir.root, "/02Librerias.R"), echo=FALSE)
+```
+
+
+# Preparación de Datos y Distribución de Probabilidad
+
+En este paso vamos a recrear en R la tabla de frecuencias históricas que se
+encuentra en la página 2 del documento. Registraremos los niveles de demanda
+diaria (de 0 a 10 cajas) y su frecuencia en días (sumando un total de 364 días, correspondientes a 52 semanas). A partir de esto, calcularemos la probabilidad
+simple (relativa) y la probabilidad acumulada para cada nivel de demanda.
+
+<!-- Para aplicar el método de Simulación Monte Carlo, el motor central requiere un -->
+<!-- mecanismo para generar eventos aleatorios. Al calcular la probabilidad de cada -->
+<!-- escenario de demanda y su probabilidad acumulada, creamos las condiciones -->
+<!-- necesarias para aplicar el método de la transformada inversa. Esto nos permitirá -->
+<!-- tomar un número pseudoaleatorio U(0,1) y mapearlo a un valor específico de -->
+<!-- demanda diaria de manera proporcional a cómo ocurrió en la historia. Se -->
+<!-- utilizará la librería dplyr por su sintaxis limpia y concatenada (pipes %>%) -->
+<!-- para transformar los datos de manera eficiente. -->
+
+1. Definir los vectores con los datos históricos extraídos del documento
+
+```{r, echo=TRUE}
+ventas_cajas <- 0:10
+numero_dias <- c(1, 5, 12, 19, 27, 59, 74, 59, 49, 37, 22)
+```
+
+2. Crear el dataframe base con las frecuencias
+
+```{r, echo=TRUE}
+tabla_historica <- data.frame(
+  Ventas = ventas_cajas,
+  Dias = numero_dias
+)
+```
+
+3. Calcular probabilidades
+
+```{r, echo=TRUE}
+tabla_probabilidades <- tabla_historica %>%
+  # Se calcula la probabilidad simple dividiendo los días entre el total de días (364)
+  mutate(Probabilidad = Dias / sum(Dias)) %>%
+  # Se calcula la probabilidad acumulada usando la función cumsum()
+  mutate(Prob_Acumulada = cumsum(Probabilidad)) %>%
+  # Se redondean los resultados a 4 decimales para mayor claridad al visualizar
+  mutate(
+    Probabilidad = round(Probabilidad, 4),
+    Prob_Acumulada = round(Prob_Acumulada, 4)
+  ) 
+```
+
+4. Mostrar la tabla resultante en consola para verificar los cálculos
+
+```{r echo=FALSE}
+# print(tabla_probabilidades)
+# stargazer(tabla_probabilidades, type = 'text', summary = FALSE)
+# tabla_probabilidades %>% kable()
+tabla_probabilidades %>% gt()
+
+# Validar que la suma total de días es 364 como indica el problema
+cat("Total de días históricos:", sum(tabla_probabilidades$Dias), "\n")
+```
+
+
+# Función Generadora de Demanda
+
+En este paso crearemos una función en R llamada generar_demanda. Esta función
+tomará como entrada el número de días que deseamos simular y utilizará las
+probabilidades calculadas en el bloque 2 para devolver valores aleatorios de
+demanda de leche.
+
+<!-- El corazón de la Simulación Monte Carlo es la generación de variables aleatorias -->
+<!-- basadas en distribuciones conocidas. Aunque matemáticamente esto se logra -->
+<!-- generando un número aleatorio uniforme $U(0,1)$ y cruzándolo con la probabilidad -->
+<!-- acumulada (método de la transformada inversa), en R la forma más óptima, -->
+<!-- vectorizada y segura de hacerlo es utilizando la función nativa sample(). Esta -->
+<!-- función aplica el método internamente de manera altamente eficiente, -->
+<!-- permitiéndonos simular desde un solo día hasta miles de días en una fracción de -->
+<!-- segundo. -->
+
+1. Definir la función generadora de demanda
+
+```{r generar_demanda, echo=TRUE}
+generar_demanda <- function(n_dias, tabla_prob) {
+  # n_dias: cantidad de valores de demanda a generar (ej. 7 para una semana)
+  # tabla_prob: dataframe con valores de frecuencia y probabilidad acumulada
+  
+  # Generar la demanda usando muestreo aleatorio con reemplazo
+  # basado en la distribución de probabilidades histórica
+  demandas_simuladas <- sample(
+    x = tabla_prob$Ventas,          # Posibles valores de demanda (0 a 10)
+    size = n_dias,                  # Número de días a simular
+    replace = TRUE,                 # Con reemplazo (los valores pueden repetirse)
+    prob = tabla_prob$Probabilidad  # Vector de probabilidades simples asignadas a cada valor
+  )
+  
+  # Retornar el vector con las demandas simuladas
+  return(demandas_simuladas)
+}
+```
+
+2. Prueba de la función para verificar su funcionamiento
+Fijamos una semilla para reproducibilidad en esta prueba
+```{r, echo=TRUE}
+set.seed(123)
+```
+
+Simulamos la demanda para una semana (7 días)
+
+```{r, echo=TRUE}
+demanda_semana_prueba <- generar_demanda(n_dias = 7, tabla_prob = tabla_probabilidades)
+```
+
+Mostramos el resultado de la prueba en consola
+
+```{r echo=FALSE}
+cat("Prueba de demanda para 7 días:", demanda_semana_prueba, "\n")
+# print(cat("Prueba de demanda para 7 días:", demanda_semana_prueba, "\n"))
+```
+
+# Lógica de Simulación de Inventario (Una Semana)
+
+En este bloque construiremos la función simular_semana, la cual modela la
+dinámica diaria del inventario durante 7 días (de lunes a domingo). Esta función
+recibirá la demanda de la semana, las entregas programadas para esa semana y el
+inventario inicial (lo que quedó de la semana anterior). Evaluará día por día el
+inventario disponible, restará la demanda y calculará el inventario final y los
+faltantes, respetando la regla de que los faltantes no se acumulan para el día
+siguiente.
+
+<!-- A diferencia de la generación de demanda, el cálculo de inventario es un proceso -->
+<!-- secuencial: el inventario inicial de hoy depende estrictamente del inventario -->
+<!-- final de ayer. Por esta razón, el uso de un bucle for es el enfoque más adecuado -->
+<!-- e intuitivo. Además, parametrizar el vector de entregas (ej. recibir todo el -->
+<!-- lunes, o dividirlo entre lunes y miércoles) nos da la flexibilidad necesaria -->
+<!-- para el Bloque 6, donde buscaremos la estrategia óptima de pedido. -->
+
+1. Definir la función que simula el flujo de inventario de una semana
+```{r simular_semana, echo=TRUE}
+simular_semana <- function(demanda_semana, entregas_semana, inv_inicial = 0) {
+  # demanda_semana: vector numérico de 7 posiciones (demanda de Lunes a Domingo)
+  # entregas_semana: vector numérico de 7 posiciones (cantidad recibida cada día)
+  # inv_inicial: cajas que sobraron de la semana anterior (por defecto 0)
+  
+  # Inicializar vectores para guardar los resultados diarios
+  inv_final <- numeric(7)
+  faltantes <- numeric(7)
+  
+  # Variable temporal para llevar el control del inventario al inicio de cada día
+  inv_actual <- inv_inicial
+  
+  # Bucle iterativo para recorrer los 7 días de la semana
+  for (dia in 1:7) {
+    # El inventario disponible en la mañana es el actual más la entrega de ese día
+    inv_disponible <- inv_actual + entregas_semana[dia]
+    
+    # Extraer la demanda específica de ese día
+    demanda_hoy <- demanda_semana[dia]
+    
+    # Evaluar si la demanda supera el inventario disponible
+    if (demanda_hoy > inv_disponible) {
+      # Si falta leche, calculamos la cantidad faltante
+      faltantes[dia] <- demanda_hoy - inv_disponible
+      # El inventario final queda en 0 (los faltantes no se acumulan como inventario negativo)
+      inv_actual <- 0 
+    } else {
+      # Si hay suficiente leche, no hay faltante
+      faltantes[dia] <- 0
+      # El inventario se reduce según la demanda satisfecha
+      inv_actual <- inv_disponible - demanda_hoy
+    }
+    
+    # Registrar el inventario final de este día en el vector de resultados
+    inv_final[dia] <- inv_actual
+  }
+  
+  # Consolidar los resultados en un data.frame para facilitar su análisis posterior
+  resultado_semana <- data.frame(
+    Dia = 1:7,
+    Entrega = entregas_semana,
+    Demanda = demanda_semana,
+    Inventario_Final = inv_final,
+    Faltante = faltantes
+  )
+  
+  # Retornar el dataframe con el balance semanal
+  return(resultado_semana)
+}
+```
+
+2. Prueba de la función con el contrato actual (30 cajas el lunes)
+Usamos la demanda de prueba que generamos en el Bloque 3 (o una manual para
+verificar)
+
+```{r, echo=TRUE}
+demanda_prueba <- c(5, 6, 8, 4, 7, 5, 9) # Ejemplo de demanda semanal
+entregas_actuales <- c(30, 0, 0, 0, 0, 0, 0) # 30 cajas el día 1 (Lunes), 0 el resto
+```
+
+3. Ejecutar la simulación de prueba
+
+```{r, echo=TRUE}
+prueba_semana <- simular_semana(
+  demanda_semana = demanda_prueba, 
+  entregas_semana = entregas_actuales, 
+  inv_inicial = 0
+)
+```
+
+4. Mostrar el resultado en consola
+```{r echo=FALSE}
+# stargazer(prueba_semana, type = 'text', summary = FALSE)
+prueba_semana %>% gt()
+```
+
+# Cálculo de Costos y Métricas
+
+En este bloque vamos a crear una función llamada evaluar_semana. Esta función
+tomará como entrada los resultados diarios de la simulación de una semana (el
+dataframe generado en el Bloque 4) y calculará el costo total asociado. Sumará
+el costo de mantener inventario (\$800 por cada caja que quede al final de cada
+día), calculará el costo de suministro (\$15,000 fijos por cada día que haya
+entrega, más $100 por cada caja entregada), e identificará si ocurrió algún
+quiebre de stock (faltante) durante esa semana.
+
+<!-- Separar la lógica financiera de la lógica de flujo de inventario hace que el -->
+<!-- código sea más modular y fácil de depurar. Usar las operaciones vectorizadas -->
+<!-- base de R sobre el dataframe resultante es sumamente rápido. Además, extraer el -->
+<!-- inventario final del domingo (día 7) es fundamental, ya que este valor se -->
+<!-- convertirá en el inventario inicial del lunes de la siguiente semana en nuestra -->
+<!-- simulación a largo plazo. -->
+
+1. Definir la función para calcular costos y métricas de una semana
+```{r evaluar_semana, echo=TRUE}
+evaluar_semana <- function(df_semana) {
+  # df_semana: dataframe generado por la función simular_semana()
+  
+  # --- CÁLCULO DE COSTO DE INVENTARIO ---
+  # Se cobra $800 por cada caja que permanezca en inventario al final del día
+  total_cajas_guardadas <- sum(df_semana$Inventario_Final)
+  costo_inventario <- total_cajas_guardadas * 800
+  
+  # --- CÁLCULO DE COSTO DE ENTREGA ---
+  # El costo fijo de $15,000 se aplica por CADA DÍA que se reciba un pedido
+  dias_con_entrega <- sum(df_semana$Entrega > 0)
+  costo_fijo_entrega <- dias_con_entrega * 15000
+  
+  # El costo variable es de $100 por cada unidad recibida en la semana
+  total_cajas_entregadas <- sum(df_semana$Entrega)
+  costo_variable_entrega <- total_cajas_entregadas * 100
+  
+  # Costo total de entrega
+  costo_entrega_total <- costo_fijo_entrega + costo_variable_entrega
+  
+  # --- CÁLCULO DEL COSTO TOTAL ---
+  costo_total <- costo_inventario + costo_entrega_total
+  
+  # --- MÉTRICA DE NIVEL DE SERVICIO ---
+  # Evaluamos si hubo al menos un día con faltantes en toda la semana (TRUE/FALSE)
+  hubo_faltante <- any(df_semana$Faltante > 0)
+  
+  # --- INVENTARIO PARA LA PRÓXIMA SEMANA ---
+  # El inventario con el que cierra el domingo (día 7)
+  inv_final_domingo <- df_semana$Inventario_Final[7]
+  
+  # 2. Retornar una lista (o dataframe de 1 fila) con todas las métricas
+  resultado_metricas <- data.frame(
+    Costo_Inventario = costo_inventario,
+    Costo_Entrega = costo_entrega_total,
+    Costo_Total = costo_total,
+    Hubo_Faltante = hubo_faltante,
+    Inv_Traspaso = inv_final_domingo
+  )
+  
+  return(resultado_metricas)
+}
+```
+
+2. Prueba rápida usando el resultado del bloque anterior (prueba_semana)
+```{r, echo=TRUE}
+metricas_prueba <- evaluar_semana(prueba_semana)
+```
+
+3. Mostramos los resultados de la prueba financiera en consola
+```{r, echo=FALSE}
+# stargazer(metricas_prueba, type = 'text', summary = FALSE)
+metricas_prueba %>% gt()
+```
+
+# Motor Monte Carlo (100 Semanas)
+
+En este bloque vamos a construir la función simular_montecarlo. Esta función
+encapsulará todo el proceso repetitivo: ejecutará un bucle de 100 semanas donde
+en cada iteración generará la demanda, simulará el inventario y evaluará los
+costos usando las funciones de los bloques anteriores. Además, se encargará de
+transferir el inventario sobrante del domingo al lunes de la siguiente semana.
+Al final, nos devolverá el costo total acumulado y el porcentaje de semanas que
+cumplieron la meta de no tener faltantes.
+
+<!-- La Simulación Monte Carlo basa su poder en la repetición de múltiples escenarios -->
+<!-- aleatorios para converger en un resultado esperado. Al simular 100 semanas -->
+<!-- continuas, capturamos la variabilidad de la demanda y su efecto bola de nieve en -->
+<!-- el inventario. Se parametriza la entrega del lunes y del miércoles para que esta -->
+<!-- misma función nos sirva en el Bloque 6, donde evaluaremos múltiples estrategias -->
+<!-- de manera masiva. -->
+
+1. Definir el motor principal de la Simulación Monte Carlo
+```{r simular_montecarlo, echo=TRUE}
+simular_montecarlo <- function(q_lunes, q_miercoles, n_semanas = 100, tabla_prob) {
+  # q_lunes: cantidad de cajas a pedir el Lunes (día 1)
+  # q_miercoles: cantidad de cajas a pedir el Miércoles (día 3)
+  # n_semanas: horizonte de simulación (por defecto 100 semanas)
+  # tabla_prob: distribución de probabilidad de la demanda (del Bloque 2)
+  
+  # Estructurar el vector de entregas para los 7 días (L, M, X, J, V, S, D)
+  entregas <- c(q_lunes, 0, q_miercoles, 0, 0, 0, 0)
+  
+  # Inicializar variables para acumular los resultados globales
+  costo_total_acumulado <- 0
+  semanas_con_faltantes <- 0
+  
+  # Según el problema, la simulación inicia un lunes sin inventario previo
+  inv_inicial_semana <- 0 
+  
+  # Bucle que recorre cada una de las semanas del horizonte de simulación
+  for (semana in 1:n_semanas) {
+    
+    # Paso A: Generar la demanda aleatoria para los 7 días de esta semana
+    demanda_sem <- generar_demanda(n_dias = 7, tabla_prob = tabla_prob)
+    
+    # Paso B: Simular el flujo de inventario diario con el inventario inicial correspondiente
+    res_semana <- simular_semana(
+      demanda_semana = demanda_sem, 
+      entregas_semana = entregas, 
+      inv_inicial = inv_inicial_semana
+    )
+    
+    # Paso C: Evaluar los costos y verificar si hubo faltantes en esta semana
+    metricas_sem <- evaluar_semana(res_semana)
+    
+    # Paso D: Acumular el costo total de la semana al total del horizonte
+    costo_total_acumulado <- costo_total_acumulado + metricas_sem$Costo_Total
+    
+    # Si hubo algún faltante en la semana, sumar 1 al contador
+    if (metricas_sem$Hubo_Faltante) {
+      semanas_con_faltantes <- semanas_con_faltantes + 1
+    }
+    
+    # Paso E: El inventario final del domingo pasa a ser el inicial del próximo lunes
+    inv_inicial_semana <- metricas_sem$Inv_Traspaso
+  }
+  
+  # Calcular el porcentaje de semanas SIN faltantes (Nivel de Servicio)
+  semanas_sin_faltantes <- n_semanas - semanas_con_faltantes
+  pct_sin_faltantes <- (semanas_sin_faltantes / n_semanas) * 100
+  
+  # Empaquetar el resultado final en un dataframe de una fila
+  resultado_final <- data.frame(
+    Q_Lunes = q_lunes,
+    Q_Miercoles = q_miercoles,
+    Costo_Total_100_Sem = costo_total_acumulado,
+    Pct_Sin_Faltantes = pct_sin_faltantes
+  )
+  
+  return(resultado_final)
+}
+```
+
+2. Prueba del motor simulando el contrato actual (30 cajas solo el lunes)
+```{r, echo=TRUE}
+set.seed(42) # Fijar semilla para que el resultado sea reproducible
+prueba_contrato_actual <- simular_montecarlo(
+  q_lunes = 30, 
+  q_miercoles = 0, 
+  n_semanas = 100, 
+  tabla_prob = tabla_probabilidades
+)
+```
+
+3. Mostrar el resultado de la estrategia actual
+```{r, echo=FALSE}
+# stargazer(prueba_contrato_actual, type = 'text', summary = FALSE)
+prueba_contrato_actual %>% gt()
+```
+
+# Optimización de Estrategias
+
+En este bloque implementaremos un proceso de búsqueda exhaustiva (conocido como
+Grid Search). Definiremos un conjunto de posibles cantidades a pedir los lunes y
+los miércoles. Luego, usaremos un bucle para evaluar cada una de estas
+combinaciones mediante el motor de simulación (100 semanas por escenario).
+Finalmente, filtraremos aquellas estrategias que logren al menos un 80% de
+semanas sin faltantes y seleccionaremos la que minimice el costo total.
+
+<!-- Dado que el costo de inventario diario es alto (\$800) frente al costo por -->
+<!-- unidad (\$100), pero hay un costo fijo importante por envío (\$15,000), existe  -->
+<!-- un balance no trivial entre pedir todo el lunes (ahorrando un envío pero  -->
+<!-- acumulando mucho inventario) o fraccionar el pedido entre lunes y miércoles  -->
+<!-- (pagando dos envíos pero reduciendo el inventario diario). Explorar una  -->
+<!-- cuadrícula de combinaciones es el enfoque más robusto para garantizar que  -->
+<!-- encontramos el óptimo global. `dplyr` nos facilita enormemente la tarea de  -->
+<!-- filtrar y ordenar los resultados de esta búsqueda. -->
+
+1. Definir el espacio de búsqueda (Grid Search)
+Sabiendo que la demanda promedio diaria es ~6.2 cajas (aprox 44 a la semana),
+exploramos pedidos desde 20 hasta 70 cajas en saltos de 5.
+
+```{r, echo=TRUE}
+posibles_lunes <- seq(20, 70, by = 5)
+posibles_miercoles <- seq(0, 50, by = 5)
+```
+
+2. Crear un dataframe con todas las combinaciones posibles
+```{r, echo=TRUE}
+grid_estrategias <- expand.grid(
+  Q_Lunes = posibles_lunes,
+  Q_Miercoles = posibles_miercoles
+)
+```
+
+3. Inicializar una lista para guardar los resultados de cada simulación
+
+```{r, echo=TRUE}
+resultados_simulacion <- list()
+```
+
+4. Fijar semilla global para que las comparaciones sean justas (misma demanda para todas las políticas)
+
+```{r, echo=TRUE}
+set.seed(2026)
+```
+
+5. Bucle para evaluar cada combinación de la cuadrícula
+
+```{r, echo=TRUE}
+cat("Evaluando", nrow(grid_estrategias), "estrategias. Por favor espere...\n")
+
+for (i in 1:nrow(grid_estrategias)) {
+  # Extraer la cantidad de la iteración actual
+  q_l_actual <- grid_estrategias$Q_Lunes[i]
+  q_m_actual <- grid_estrategias$Q_Miercoles[i]
+  
+  # Ejecutar la simulación para esta combinación (100 semanas)
+  # Nota: usamos la tabla de probabilidades generada en el Bloque 1
+  resultado_iteracion <- simular_montecarlo(
+    q_lunes = q_l_actual,
+    q_miercoles = q_m_actual,
+    n_semanas = 100,
+    tabla_prob = tabla_probabilidades
+  )
+  
+  # Guardar el dataframe resultante en la lista
+  resultados_simulacion[[i]] <- resultado_iteracion
+}
+```
+
+6. Consolidar todos los resultados en un único dataframe
+```{r, echo=TRUE}
+df_resultados_totales <- bind_rows(resultados_simulacion)
+```
+
+7. Filtrar y encontrar la estrategia óptima
+
+```{r, echo=TRUE}
+analisis_optimo <- df_resultados_totales %>%
+  # Regla de negocio: Al menos 80% de las semanas sin faltantes
+  filter(Pct_Sin_Faltantes >= 80) %>%
+  # Ordenar de menor a mayor costo total
+  arrange(Costo_Total_100_Sem)
+```
+
+8. Mostrar las 5 mejores estrategias viables
+
+```{r echo=FALSE}
+cat("\nTop 5 Mejores Estrategias que cumplen la meta (>= 80%):\n")
+# print(head(analisis_optimo, 5))
+# stargazer(head(analisis_optimo, 5), type = 'text', summary = FALSE)
+head(analisis_optimo, 5) %>% gt()
+
+# Aislar la estrategia campeona (la de la primera fila tras ordenar)
+estrategia_campeona <- analisis_optimo[1, ]
+cat("\n=========================================\n")
+cat("LA ESTRATEGIA ÓPTIMA ES:\n")
+cat("Pedir el Lunes:", estrategia_campeona$Q_Lunes, "cajas\n")
+cat("Pedir el Miércoles:", estrategia_campeona$Q_Miercoles, "cajas\n")
+cat("Costo Total (100 sem): $", estrategia_campeona$Costo_Total_100_Sem, "\n")
+cat("Nivel de Servicio:", estrategia_campeona$Pct_Sin_Faltantes, "%\n")
+cat("=========================================\n")
+```
+
+# Visualización de Resultados
+
+En este último bloque utilizaremos la librería `ggplot2` para construir dos 
+visualizaciones clave. La primera será un gráfico de dispersión que mostrará el 
+balance entre el Nivel de Servicio (% de semanas sin faltantes) y el Costo Total
+para todas las estrategias evaluadas, destacando la zona viable (>= 80%). La
+segunda gráfica ilustrará el comportamiento del inventario día a día durante una
+semana típica utilizando la estrategia óptima encontrada en el Bloque 6.
+
+<!-- Los números por sí solos pueden ser abstractos para la toma de decisiones.  -->
+<!-- Visualizar el "trade-off" (costo vs. nivel de servicio) permite al administrador -->
+<!-- del supermercado entender visualmente por qué la estrategia seleccionada es la -->
+<!-- mejor y qué tan cerca está de la frontera de restricción. Por otro lado,  -->
+<!-- graficar una semana típica del inventario (con el comportamiento de sierra -->
+<!-- clásico de los modelos de inventario) valida que la lógica de entregas y consumo -->
+<!-- funciona correctamente en el tiempo. `ggplot2` se elige por su flexibilidad y -->
+<!-- calidad gráfica basada en la gramática de los gráficos. -->
+
+## GRÁFICO 1: Análisis de Estrategias (Costo vs. Nivel de Servicio)
+
+Crear una nueva columna para clasificar las estrategias en el gráfico
+
+```{r, echo=TRUE}
+df_resultados_totales <- df_resultados_totales %>%
+  mutate(
+    Viabilidad = ifelse(Pct_Sin_Faltantes >= 80, "Cumple (>= 80%)", "No Cumple (< 80%)"),
+    Es_Optima = ifelse(Costo_Total_100_Sem == min(Costo_Total_100_Sem[Pct_Sin_Faltantes >= 80]) & 
+                       Pct_Sin_Faltantes >= 80, "Óptima", "Otras")
+  )
+```
+
+```{r grafico_estrategias}
+grafico_estrategias <- ggplot(df_resultados_totales, aes(x = Pct_Sin_Faltantes, y = Costo_Total_100_Sem)) +
+  # Puntos de dispersión coloreados por viabilidad
+  geom_point(aes(color = Viabilidad, size = Es_Optima), alpha = 0.7) +
+  # Destacar la estrategia óptima con un punto más grande y diferente forma
+  geom_point(data = filter(df_resultados_totales, Es_Optima == "Óptima"), 
+             color = "red", size = 4, shape = 8) +
+  # Línea vertical para marcar la restricción del 80%
+  geom_vline(xintercept = 80, linetype = "dashed", color = "darkred") +
+  # Escalas y colores
+  scale_color_manual(values = c("Cumple (>= 80%)" = "steelblue", "No Cumple (< 80%)" = "gray")) +
+  scale_size_manual(values = c("Óptima" = 3, "Otras" = 1), guide = "none") +
+  # Etiquetas y tema
+  labs(
+    title = "Simulación Monte Carlo: Evaluación de Estrategias de Pedido",
+    subtitle = "Costo Total vs % Semanas sin Faltantes (Horizonte: 100 semanas)",
+    x = "Nivel de Servicio (% Semanas sin Faltantes)",
+    y = "Costo Total ($)",
+    color = "Estado de la Estrategia"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+print(grafico_estrategias)
+```
+
+
+## GRÁFICO 2: Comportamiento del Inventario (Semana Típica con Estrategia Óptima)
+Extraer las cantidades óptimas del bloque 7
+
+```{r, echo=TRUE}
+q_lunes_opt <- estrategia_campeona$Q_Lunes
+q_miercoles_opt <- estrategia_campeona$Q_Miercoles
+```
+
+Configurar entregas óptimas
+
+```{r, echo=TRUE}
+entregas_optimas <- c(q_lunes_opt, 0, q_miercoles_opt, 0, 0, 0, 0)
+```
+
+Generar una demanda aleatoria típica para graficar (fijamos semilla para el 
+ejemplo)
+
+```{r, echo=TRUE}
+set.seed(101)
+demanda_tipica <- generar_demanda(n_dias = 7, tabla_prob = tabla_probabilidades)
+```
+
+Simular esa semana con la estrategia óptima
+
+```{r, echo=TRUE}
+semana_grafico <- simular_semana(
+  demanda_semana = demanda_tipica, 
+  entregas_semana = entregas_optimas, 
+  inv_inicial = 0
+)
+```
+
+Añadir nombres de los días para el eje X
+
+```{r, echo=TRUE}
+semana_grafico$Nombre_Dia <- factor(
+  c("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"),
+  levels = c("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+)
+```
+
+Crear el gráfico de barras/líneas para el inventario
+
+```{r}
+grafico_inventario <- ggplot(semana_grafico, aes(x = Nombre_Dia)) +
+  # Barras para mostrar el inventario final al cierre del día
+  geom_bar(aes(y = Inventario_Final, fill = "Inventario Final"), stat = "identity", alpha = 0.6) +
+  # Puntos y líneas para mostrar la demanda de cada día
+  geom_line(aes(y = Demanda, group = 1, color = "Demanda Diaria"), linewidth = 1) +
+  geom_point(aes(y = Demanda, color = "Demanda Diaria"), size = 3) +
+  # Anotaciones de las entregas
+  geom_text(aes(y = Inventario_Final + 2, label = ifelse(Entrega > 0, paste("+", Entrega, "cajas"), "")), 
+            color = "darkgreen", fontface = "bold", size = 3.5) +
+  # Configurar colores y leyendas
+  scale_fill_manual(values = c("Inventario Final" = "dodgerblue")) +
+  scale_color_manual(values = c("Demanda Diaria" = "darkorange")) +
+  labs(
+    title = paste("Dinámica de Inventario - Estrategia Óptima (L:", q_lunes_opt, "| M:", q_miercoles_opt, ")"),
+    subtitle = "Simulación de una semana típica mostrando recepciones y consumo",
+    x = "Día de la Semana",
+    y = "Cantidad (Cajas de Leche)",
+    fill = "",
+    color = ""
+  ) +
+  theme_light() +
+  theme(legend.position = "top")
+
+# Mostrar el segundo gráfico
+print(grafico_inventario)
+```
+

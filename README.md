@@ -88,131 +88,218 @@ git push -uf origin main
 ```
 
 
-## Convertir jupyter a otros formatos
+[//]: # (## Convertir jupyter a otros formatos)
 
-una buena opción es tener instalado el paquete rise
+[//]: # ()
+[//]: # (una buena opción es tener instalado el paquete rise)
 
-```PowerShell
-jupyter nbconvert --to FORMAT notebook.ipynb
-```
-otra opción es:
+[//]: # ()
+[//]: # (```PowerShell)
 
-```PowerShell
-jupyter nbconvert notebook.ipynb --to slides --post serve --SlidesExporter.reveal_theme=serif --SlidesExporter.reveal_scroll=True --SlidesExporter.reveal_transition=none
-```
+[//]: # (jupyter nbconvert --to FORMAT notebook.ipynb)
 
-Más info [nbconvert documentation](https://nbconvert.readthedocs.io/en/latest/usage.html)
+[//]: # (```)
 
-## PowerShell
+[//]: # (otra opción es:)
 
-Para revisar tamaño de los archivos
+[//]: # ()
+[//]: # (```PowerShell)
 
-```PowerShell
-Get-ChildItem -path "D:\Proyectos\Diplomado_UdeM\datasets\*" | Foreach {
-> $Files = Get-ChildItem $_.FullName -Recurse -File
-> $Size = '{0:N2}' -f (( $Files | Measure-Object -Property Length -Sum).Sum /1MB)
-> [PSCustomObject]@{Profile = $_.FullName ; TotalObjects = "$($Files.Count)" ; SizeMB = $Size}
-> } | Export-CSV "D:\Proyectos\Diplomado_UdeM\folder_size_1.csv" -NoTypeInformation
-```
+[//]: # (jupyter nbconvert notebook.ipynb --to slides --post serve --SlidesExporter.reveal_theme=serif --SlidesExporter.reveal_scroll=True --SlidesExporter.reveal_transition=none)
 
-## Git
+[//]: # (jupyter nbconvert D:\SimulAva\notebooks\SimulacionMC.ipynb --to slides --post serve --SlideExporter.reveal_theme=serif --SlidesExporter.reveal_scroll=True --SlidesExporter.reveal_transition=none)
 
-Identifica los archivos grandes: Puedes utilizar el siguiente comando para listar los archivos grandes en tu historial de Git:
+[//]: # (jupyter nbconvert --to html D:\SimulAva\notebooks\SimulacionMC.ipynb)
 
-```bash
-git rev-list --objects --all | grep $(git verify-pack -v .git/objects/pack/pack-*.idx | sort -k 3 -n | tail -10 | awk '{print$1}')
-```
+[//]: # (jupyter nbconvert --to pdf D:\SimulAva\notebooks\SimulacionMC.ipynb)
 
-Este comando te mostrará los archivos más grandes en el historial de tu repositorio.
+[//]: # (```)
 
-Reduce el tamaño de los archivos: Si puedes, intenta comprimir o reducir el tamaño de los archivos problemáticos. Por ejemplo, si se trata de imágenes, videos o archivos de datos, podrías comprimirlos o reducir su resolución.
+[//]: # ()
+[//]: # (Más info [nbconvert documentation]&#40;https://nbconvert.readthedocs.io/en/latest/usage.html&#41;)
 
-Elimina los archivos grandes del historial de Git (si es necesario): Si necesitas eliminar los archivos grandes del historial (ya que seguirán existiendo en commits anteriores), puedes usar la herramienta BFG Repo-Cleaner o git filter-repo para limpiar el historial.
+[//]: # ()
+[//]: # (## PowerShell)
 
-Usando BFG Repo-Cleaner:
+[//]: # ()
+[//]: # (Para revisar tamaño de los archivos)
 
-```bash
-bfg --delete-files archivo_grande
-git reflog expire --expire=now --all && git gc --prune=now --aggressive
-```
+[//]: # ()
+[//]: # (```PowerShell)
 
-Añade nuevamente los archivos (si redujiste el tamaño): Después de comprimir o reducir el tamaño de los archivos, vuelve a añadirlos con: bash Copiar código
+[//]: # (Get-ChildItem -path "D:\Proyectos\Diplomado_UdeM\datasets\*" | Foreach {)
 
-```bash
-git add archivo_comprimido
-git commit -m "Archivo reducido"
-git push origin rama
-```
+[//]: # (> $Files = Get-ChildItem $_.FullName -Recurse -File)
 
-Opción 2: Usar Git LFS (Large File Storage)
-Git LFS es una extensión de Git que te permite manejar archivos grandes sin afectar el rendimiento del repositorio. Con Git LFS, los archivos grandes no se almacenan directamente en Git, sino que se sustituyen por referencias, mientras los archivos reales se almacenan en un servidor separado.
+[//]: # (> $Size = '{0:N2}' -f &#40;&#40; $Files | Measure-Object -Property Length -Sum&#41;.Sum /1MB&#41;)
 
-Instala Git LFS: Si no lo tienes instalado, puedes instalarlo según tu sistema operativo:
+[//]: # (> [PSCustomObject]@{Profile = $_.FullName ; TotalObjects = "$&#40;$Files.Count&#41;" ; SizeMB = $Size})
 
-Linux: bash Copiar código
+[//]: # (> } | Export-CSV "D:\Proyectos\Diplomado_UdeM\folder_size_1.csv" -NoTypeInformation)
 
-```bash
-sudo apt-get install git-lfs
-```
+[//]: # (```)
 
-Mac: bash Copiar código
+[//]: # ()
+[//]: # (## Git)
 
-```bash
-brew install git-lfs
-```
+[//]: # ()
+[//]: # (Identifica los archivos grandes: Puedes utilizar el siguiente comando para listar los archivos grandes en tu historial de Git:)
 
-Windows: Descárgalo desde: git-lfs.github.com
-Inicializa Git LFS en tu repositorio: Después de instalar Git LFS, debes inicializarlo en el repositorio:
+[//]: # ()
+[//]: # (```bash)
 
-```bash
-git lfs install
-```
+[//]: # (git rev-list --objects --all | grep $&#40;git verify-pack -v .git/objects/pack/pack-*.idx | sort -k 3 -n | tail -10 | awk '{print$1}'&#41;)
 
-Rastrear los archivos grandes con LFS: Debes especificar los tipos de archivos que deseas rastrear con Git LFS. Por ejemplo, si los archivos grandes son imágenes PNG, puedes usar el siguiente comando:
+[//]: # (```)
 
-```bash
-git lfs track "*.png"
-```
+[//]: # ()
+[//]: # (Este comando te mostrará los archivos más grandes en el historial de tu repositorio.)
 
-También puedes rastrear archivos específicos de gran tamaño con:
+[//]: # ()
+[//]: # (Reduce el tamaño de los archivos: Si puedes, intenta comprimir o reducir el tamaño de los archivos problemáticos. Por ejemplo, si se trata de imágenes, videos o archivos de datos, podrías comprimirlos o reducir su resolución.)
 
-```bash
-git lfs track "archivo_grande"
-```
+[//]: # ()
+[//]: # (Elimina los archivos grandes del historial de Git &#40;si es necesario&#41;: Si necesitas eliminar los archivos grandes del historial &#40;ya que seguirán existiendo en commits anteriores&#41;, puedes usar la herramienta BFG Repo-Cleaner o git filter-repo para limpiar el historial.)
 
-Añade y commitea los archivos grandes: Después de configurar LFS, añade y commitea los archivos rastreados:
+[//]: # ()
+[//]: # (Usando BFG Repo-Cleaner:)
 
-```bash
-git add .gitattributes archivo_grande
-git commit -m "Añadir archivo grande con LFS"
-```
+[//]: # ()
+[//]: # (```bash)
 
-Push al repositorio: Finalmente, empuja los cambios al repositorio:
+[//]: # (bfg --delete-files archivo_grande)
 
-```bash
-git push origin rama
-```
+[//]: # (git reflog expire --expire=now --all && git gc --prune=now --aggressive)
 
-Git LFS subirá los archivos grandes al almacenamiento de Git LFS mientras que Git seguirá manejando el resto de los archivos como de costumbre.
+[//]: # (```)
 
-## The Boston Housing Dataset
+[//]: # ()
+[//]: # (Añade nuevamente los archivos &#40;si redujiste el tamaño&#41;: Después de comprimir o reducir el tamaño de los archivos, vuelve a añadirlos con: bash Copiar código)
 
-[bosto](https://lib.stat.cmu.edu/datasets/boston)
-[The Boston Housing Dataset](https://www.kaggle.com/code/prasadperera/the-boston-housing-dataset)
+[//]: # ()
+[//]: # (```bash)
 
+[//]: # (git add archivo_comprimido)
 
-## Python Plotly Express Tutorial: Unlock Beautiful Visualizations
+[//]: # (git commit -m "Archivo reducido")
 
-[Python Plotly Express Tutorial: Unlock Beautiful Visualizations](https://www.datacamp.com/tutorial/python-plotly-express-tutorial)
+[//]: # (git push origin rama)
 
-## UCI Machine Learning Repository
+[//]: # (```)
 
-[UCI Machine Learning Repository](https://archive.ics.uci.edu/datasets?Task=Regression&skip=0&take=10&sort=desc&orderBy=NumHits&search=ridge)
+[//]: # ()
+[//]: # (Opción 2: Usar Git LFS &#40;Large File Storage&#41;)
 
-## Seaborn data
+[//]: # (Git LFS es una extensión de Git que te permite manejar archivos grandes sin afectar el rendimiento del repositorio. Con Git LFS, los archivos grandes no se almacenan directamente en Git, sino que se sustituyen por referencias, mientras los archivos reales se almacenan en un servidor separado.)
 
-[seaborn-data](https://github.com/mwaskom/seaborn-data)
-[load_dataset](https://seaborn.pydata.org/generated/seaborn.load_dataset.html)
+[//]: # ()
+[//]: # (Instala Git LFS: Si no lo tienes instalado, puedes instalarlo según tu sistema operativo:)
+
+[//]: # ()
+[//]: # (Linux: bash Copiar código)
+
+[//]: # ()
+[//]: # (```bash)
+
+[//]: # (sudo apt-get install git-lfs)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (Mac: bash Copiar código)
+
+[//]: # ()
+[//]: # (```bash)
+
+[//]: # (brew install git-lfs)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (Windows: Descárgalo desde: git-lfs.github.com)
+
+[//]: # (Inicializa Git LFS en tu repositorio: Después de instalar Git LFS, debes inicializarlo en el repositorio:)
+
+[//]: # ()
+[//]: # (```bash)
+
+[//]: # (git lfs install)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (Rastrear los archivos grandes con LFS: Debes especificar los tipos de archivos que deseas rastrear con Git LFS. Por ejemplo, si los archivos grandes son imágenes PNG, puedes usar el siguiente comando:)
+
+[//]: # ()
+[//]: # (```bash)
+
+[//]: # (git lfs track "*.png")
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (También puedes rastrear archivos específicos de gran tamaño con:)
+
+[//]: # ()
+[//]: # (```bash)
+
+[//]: # (git lfs track "archivo_grande")
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (Añade y commitea los archivos grandes: Después de configurar LFS, añade y commitea los archivos rastreados:)
+
+[//]: # ()
+[//]: # (```bash)
+
+[//]: # (git add .gitattributes archivo_grande)
+
+[//]: # (git commit -m "Añadir archivo grande con LFS")
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (Push al repositorio: Finalmente, empuja los cambios al repositorio:)
+
+[//]: # ()
+[//]: # (```bash)
+
+[//]: # (git push origin rama)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (Git LFS subirá los archivos grandes al almacenamiento de Git LFS mientras que Git seguirá manejando el resto de los archivos como de costumbre.)
+
+[//]: # ()
+[//]: # (## The Boston Housing Dataset)
+
+[//]: # ()
+[//]: # ([bosto]&#40;https://lib.stat.cmu.edu/datasets/boston&#41;)
+
+[//]: # ([The Boston Housing Dataset]&#40;https://www.kaggle.com/code/prasadperera/the-boston-housing-dataset&#41;)
+
+[//]: # ()
+[//]: # ()
+[//]: # (## Python Plotly Express Tutorial: Unlock Beautiful Visualizations)
+
+[//]: # ()
+[//]: # ([Python Plotly Express Tutorial: Unlock Beautiful Visualizations]&#40;https://www.datacamp.com/tutorial/python-plotly-express-tutorial&#41;)
+
+[//]: # ()
+[//]: # (## UCI Machine Learning Repository)
+
+[//]: # ()
+[//]: # ([UCI Machine Learning Repository]&#40;https://archive.ics.uci.edu/datasets?Task=Regression&skip=0&take=10&sort=desc&orderBy=NumHits&search=ridge&#41;)
+
+[//]: # ()
+[//]: # (## Seaborn data)
+
+[//]: # ()
+[//]: # ([seaborn-data]&#40;https://github.com/mwaskom/seaborn-data&#41;)
+
+[//]: # ([load_dataset]&#40;https://seaborn.pydata.org/generated/seaborn.load_dataset.html&#41;)
 
 ```txt
 SIMULAVA-UNAL/

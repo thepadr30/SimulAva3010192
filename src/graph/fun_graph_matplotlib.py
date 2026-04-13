@@ -39,6 +39,7 @@ from scipy import stats
 import seaborn as sns
 import pandas as pd
 
+# presentacion de estilos
 # plt.style.use("ggplot")
 # sns.set_theme(style="darkgrid")
 plt.rc('figure', figsize=(16, 9))
@@ -107,7 +108,7 @@ class FnGraphMat:
         :return: graph: gráfico de puntos
         """
         if var_add is not None:
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
             ax.scatter(var_x, var_y, label=name_y)
             ax.scatter(var_x, var_add, label=name_add)
             ax.set_title(
@@ -122,7 +123,7 @@ class FnGraphMat:
             plt.ylabel(name_y)
             plt.legend()
         else:
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
             ax.scatter(var_x, var_y, label=name_y)
             ax.set_title(
                 f"{name_y} \n mean: {np.round(var_y.mean(), 2)} "
@@ -154,7 +155,7 @@ class FnGraphMat:
             graph: gráfico de líneas
         """
         if var_add:
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
             ax.plot(var_x, var_y, label=name_y)
             ax.plot(var_x, var_add, label=name_add)
             ax.set_title(
@@ -169,7 +170,7 @@ class FnGraphMat:
             plt.ylabel(name_y)
             plt.legend()
         else:
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
             ax.plot(var_x, var_y, label=name_y)
             ax.set_title(
                 f"{name_y} \n mean: {np.round(var_y.mean(), 2)} "
@@ -242,7 +243,7 @@ class FnGraphMat:
         Returns:
             _type_: _description_
         """
-        fig, axes = plt.subplots(2, 1)
+        _, axes = plt.subplots(2, 1)
         sns.boxplot(data=data_frame, x=var_vble, ax=axes[0])
         axes[1] = plt.hist(data_frame[var_vble], alpha=0.6)
         quant_5, quant_25, quant_50, quant_75, quant_95 = data_frame[var_vble].quantile(0.05), data_frame[var_vble]\
@@ -268,7 +269,7 @@ class FnGraphMat:
         Returns:
             graph: Boxplot
         """
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         ax.boxplot(var_x)
         ax.set_title(f"Boxplot {var_name}")
         return plt.show()
@@ -316,7 +317,7 @@ class FnGraphMat:
         var_iqr = var_rq3-var_rq1
         var_inf = var_rq1 - (1.5 * var_iqr)
         var_sup = var_rq3 + (1.5 * var_iqr)
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         ax.plot(data_frame[var_index],
                 data_frame[var_vble], label=var_vble, color='black')
         ax.plot(data_frame[var_index], np.repeat(var_inf, len(
@@ -344,7 +345,7 @@ class FnGraphMat:
             graph: gráfica
         """
         var_threshold_tmp = data_frame[var_vble].quantile(q=var_threshold)
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         ax.plot(data_frame[var_index],
                 data_frame[var_vble], label=var_vble, color='black')
         ax.plot(data_frame[var_index], np.repeat(var_threshold_tmp, len(
@@ -377,7 +378,7 @@ class FnGraphMat:
             var_q3_tmp = data_frame[var_vble].quantile(q=var_q3)
             var_q4_tmp = data_frame[var_vble].quantile(q=var_q4)
             var_q5_tmp = data_frame[var_vble].quantile(q=var_q5)
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
             ax.plot(data_frame[var_index],
                     data_frame[var_vble], label=var_vble, color='black')
             ax.plot(data_frame[var_index], np.repeat(var_q1_tmp, len(
@@ -395,7 +396,7 @@ class FnGraphMat:
             var_q2_tmp = data_frame[var_vble].quantile(q=var_q2)
             var_q3_tmp = data_frame[var_vble].quantile(q=var_q3)
             var_q4_tmp = data_frame[var_vble].quantile(q=var_q4)
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
             ax.plot(data_frame[var_index],
                     data_frame[var_vble], label=var_vble, color='black')
             ax.plot(data_frame[var_index], np.repeat(var_q1_tmp, len(
@@ -410,7 +411,7 @@ class FnGraphMat:
             var_q1_tmp = data_frame[var_vble].quantile(q=var_q1)
             var_q2_tmp = data_frame[var_vble].quantile(q=var_q2)
             var_q3_tmp = data_frame[var_vble].quantile(q=var_q3)
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
             ax.plot(data_frame[var_index],
                     data_frame[var_vble], label=var_vble, color='black')
             ax.plot(data_frame[var_index], np.repeat(var_q1_tmp, len(
@@ -422,7 +423,7 @@ class FnGraphMat:
         elif (var_q1 and var_q2):
             var_q1_tmp = data_frame[var_vble].quantile(q=var_q1)
             var_q2_tmp = data_frame[var_vble].quantile(q=var_q2)
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
             ax.plot(data_frame[var_index],
                     data_frame[var_vble], label=var_vble, color='black')
             ax.plot(data_frame[var_index], np.repeat(var_q1_tmp, len(
@@ -431,7 +432,7 @@ class FnGraphMat:
                 data_frame)), label=f'Percentil {var_q2 * 100}', color='firebrick', linestyle='dashdot')
         else:
             var_q1_tmp = data_frame[var_vble].quantile(q=var_q1)
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
             ax.plot(data_frame[var_index],
                     data_frame[var_vble], label=var_vble, color='black')
             ax.plot(data_frame[var_index], np.repeat(var_q1_tmp, len(
@@ -459,7 +460,7 @@ class FnGraphMat:
         var_iqr = var_q3 - var_q1
         var_li = var_q1 - (1.5 * var_iqr)
         var_ls = var_q3 + (1.5 * var_iqr)
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         ax.plot(data_frame[var_index],
                 data_frame[var_vble], label=var_vble, color='black')
         ax.plot(data_frame[var_index], np.repeat(var_q1, len(

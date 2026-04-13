@@ -20,3 +20,26 @@ src.graph.fun_graph_plotly
    :undoc-members:
    :show-inheritance:
 
+src.logs.logger
+---------------
+
+.. automodule:: src.logs.logger
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.utils.lecturaExcel
+----------------------
+
+.. automodule:: src.utils.lecturaExcel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.utils.statisticsBase
+------------------------
+
+.. automodule:: src.utils.statisticsBase
+   :members:
+   :undoc-members:
+   :show-inheritance:
